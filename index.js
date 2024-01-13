@@ -1,14 +1,19 @@
+import express, { json } from "express";
 import connectToMongo from "./dbConfig.js";
-import express from "express";
+import authRouter from "./routes/auth.route.js";
+import noteRouter from "./routes/note.route.js";
 
 connectToMongo();
 
 const app = express();
-const PORT = 3000;
+const PORT = 5000;
 
-app.get("/", (req, res) => {
-  res.send("Hello world");
-});
+// middlewares
+
+app.use(json());
+
+app.use("/api/auth", authRouter);
+app.use("/api/note", noteRouter);
 
 app.listen(PORT, () => {
   console.log(`App listening at http://localhost:${PORT}`);
