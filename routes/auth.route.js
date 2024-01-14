@@ -2,17 +2,21 @@ import bcrypt from "bcryptjs";
 import { Router } from "express";
 import { body, validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
+import { ErrorMessages } from "../const/error.messages.constants.js";
+import { Routes } from "../const/route.constants.js";
+import isLoggedIn from "../middlewares/isLoggedIn.js";
 import User from "../models/User.js";
 
 const JWT_SECRET = "mySecret@secretMy";
 const authRouter = Router();
 
+// sign up and create user
 authRouter.post(
-  "/",
+  `/${Routes.AUTH.CREATE_USER}`,
   [
-    body("name", "Enter a valid name").isLength({ min: 3 }),
-    body("email", "Enter a valid email").isEmail(),
-    body("password", "Password must be atleast 5 characters").isLength({
+    body("name", ErrorMessages.VALID_NAME).isLength({ min: 3 }),
+    body("email", ErrorMessages.VALID_EMAIL).isEmail(),
+    body("password", ErrorMessages.PASSWORD_LENGTH).isLength({
       min: 5,
     }),
   ],
@@ -24,9 +28,7 @@ authRouter.post(
     try {
       let user = await User.findOne({ email: req.body.email });
       if (user) {
-        return res
-          .status(400)
-          .json({ error: "Sorry, a user with this email already exists" });
+        return res.status(400).json({ error: ErrorMessages.USER_EXISTS });
       }
       const salt = await bcrypt.genSalt();
       const secPass = await bcrypt.hash(req.body.password, salt);
@@ -37,8 +39,6 @@ authRouter.post(
       });
       const jwtData = {
         id: user.id,
-        name: user.name,
-        email: user.email,
       };
       const token = jwt.sign(jwtData, JWT_SECRET);
       return res.status(200).json({ token });
@@ -47,5 +47,59 @@ authRouter.post(
     }
   }
 );
+
+// login
+authRouter.post(
+  `/${Routes.AUTH.LOGIN}`,
+  [
+    body("email", ErrorMessages.VALID_EMAIL).isEmail(),
+    body("password", ErrorMessages.EMPTY_PASSWORD).exists(),
+  ],
+  async (req, res) => {
+    const { email, password } = req.body;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+      let user = await User.findOne({ email: req.body.email });
+      if (!user) {
+        return res
+          .status(400)
+          .json({ error: ErrorMessages.INVALID_CREDENTIALS });
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+
+      if (!isMatch) {
+        return res
+          .status(400)
+          .json({ error: ErrorMessages.INVALID_CREDENTIALS });
+      }
+
+      const jwtData = {
+        id: user.id,
+      };
+      const token = jwt.sign(jwtData, JWT_SECRET);
+      return res.status(200).json({ token });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+// get user details
+authRouter.post(`/${Routes.AUTH.GET_USER}`, isLoggedIn, async (req, res) => {
+  const id = req.id;
+  try {
+    const user = await User.findById(id).select("-password");
+    if (!user) {
+      return res.status(400).json({ error: ErrorMessages.USER_NOT_FOUND });
+    }
+    return res.status(200).json(user);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
 
 export default authRouter;
