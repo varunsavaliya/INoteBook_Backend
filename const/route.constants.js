@@ -4,4 +4,10 @@ export const Routes = {
     LOGIN: "login",
     GET_USER: "getuser",
   },
+  NOTES: {
+    FETCH_ALL_NOTES: "fetchallnotes",
+    ADD_NOTE: "addnote",
+    UPDATE_NOTE: "updatenote",
+    DELETE_NOTE: "deletenote",
+  },
 };

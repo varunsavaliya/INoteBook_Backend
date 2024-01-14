@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { ErrorMessages } from "../const/error.messages.constants";
+import { ErrorMessages } from "../const/error.messages.constants.js";
 
 const JWT_SECRET = "mySecret@secretMy";
 

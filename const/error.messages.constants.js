@@ -7,4 +7,9 @@ export const ErrorMessages = {
   INVALID_CREDENTIALS: "Try to login with correct credentials",
   USER_NOT_FOUND: "User not found",
   USER_NOT_AUTHORIZED: "Not authorized",
+  NOTE: {
+    TITLE_LENGTH: "Title must be atleast 3 characters",
+    DESCRIPTION_LENGTH: "Description must be atleast 10 characters",
+    NOT_FOUND: "Note not found",
+  },
 };
