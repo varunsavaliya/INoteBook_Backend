@@ -1,7 +1,10 @@
+import bcrypt from "bcryptjs";
 import { Router } from "express";
-import User from "../models/User.js";
 import { body, validationResult } from "express-validator";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
+const JWT_SECRET = "mySecret@secretMy";
 const authRouter = Router();
 
 authRouter.post(
@@ -21,18 +24,26 @@ authRouter.post(
     try {
       let user = await User.findOne({ email: req.body.email });
       if (user) {
-        res
+        return res
           .status(400)
           .json({ error: "Sorry, a user with this email already exists" });
       }
+      const salt = await bcrypt.genSalt();
+      const secPass = await bcrypt.hash(req.body.password, salt);
       user = await User.create({
         name: req.body.name,
         email: req.body.email,
-        password: req.body.password,
+        password: secPass,
       });
-      res.status(200).json({ data: user });
+      const jwtData = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      };
+      const token = jwt.sign(jwtData, JWT_SECRET);
+      return res.status(200).json({ token });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   }
 );
