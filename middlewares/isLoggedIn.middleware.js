@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
-import { ErrorMessages } from "../const/error.messages.constants.js";
+import { Messages } from "../const/messages.constants.js";
+import AppError from "../utils/error.util.js";
 
 const JWT_SECRET = "mySecret@secretMy";
 
@@ -7,14 +8,14 @@ const JWT_SECRET = "mySecret@secretMy";
 const isLoggedIn = (req, res, next) => {
   const token = req.header("token");
   if (!token) {
-    return res.status(401).json({ error: ErrorMessages.USER_NOT_AUTHORIZED });
+    return next(new AppError(Messages.ERRORS.USER_NOT_AUTHORIZED, 401));
   }
   try {
     const data = jwt.verify(token, JWT_SECRET);
     req.id = data.id;
     next();
   } catch (error) {
-    return res.status(401).json({ error: ErrorMessages.USER_NOT_AUTHORIZED });
+    return next(new AppError(Messages.ERRORS.USER_NOT_AUTHORIZED, 401));
   }
 };
 

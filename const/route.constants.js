@@ -9,5 +9,6 @@ export const Routes = {
     ADD_NOTE: "addnote",
     UPDATE_NOTE: "updatenote",
     DELETE_NOTE: "deletenote",
+    GET_NOTE_BY_ID: 'getnotebyid'
   },
 };
